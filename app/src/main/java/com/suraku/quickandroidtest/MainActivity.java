@@ -7,6 +7,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+
+import com.suraku.quickandroidtest.helpers.RecipeHelper;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -36,6 +39,11 @@ public class MainActivity extends AppCompatActivity {
         // Initialize fragments
         mRecipeListFragment = new RecipeListFragment();
         mSearchFragment = new SearchFragment();
+
+        // Initialize recipe list
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_list_item_1, RecipeHelper.getInstance().getRecipeTitles());
+        mRecipeListFragment.setListAdapter(arrayAdapter);
 
         // Display the default fragment
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();

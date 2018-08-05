@@ -4,4 +4,6 @@
     <string name="title_dashboard">Search</string>
     <string name="title_notifications">Notifications</string>
     <string name="list_empty">No data</string>
+    <string name="searchButton">Go</string>
+    <string name="searchHint">Search text...</string>
 </resources>
