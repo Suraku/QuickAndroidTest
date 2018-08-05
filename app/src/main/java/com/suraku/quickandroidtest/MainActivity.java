@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
@@ -12,6 +13,10 @@ import android.widget.ArrayAdapter;
 import com.suraku.quickandroidtest.helpers.RecipeHelper;
 
 public class MainActivity extends AppCompatActivity {
+
+    private int mRecipeFragmentId;
+    private int mSearchFragmentId;
+    private int mActiveFragmentId;
 
     private RecipeListFragment mRecipeListFragment;
     private SearchFragment mSearchFragment;
@@ -36,23 +41,55 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (savedInstanceState != null) {
+            mRecipeFragmentId = savedInstanceState.getInt(KEY_RECIPE_LIST_FRAGMENT_ID, -1);
+            mSearchFragmentId = savedInstanceState.getInt(KEY_SEARCH_FRAGMENT_ID, -1);
+            mActiveFragmentId = savedInstanceState.getInt(KEY_ACTIVE_FRAGMENT, -1);
+        }
+
+        // Initialize listeners
+        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
+        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+
         // Initialize fragments
-        mRecipeListFragment = new RecipeListFragment();
-        mSearchFragment = new SearchFragment();
+        FragmentManager manager = getSupportFragmentManager();
+        mRecipeListFragment = (RecipeListFragment) manager.findFragmentById(mRecipeFragmentId);
+        mSearchFragment = (SearchFragment) manager.findFragmentById(mSearchFragmentId);
+
+        if (mRecipeListFragment == null) {
+            mRecipeListFragment = new RecipeListFragment();
+            mRecipeFragmentId = mRecipeListFragment.getId();
+        }
+        if (mSearchFragment == null) {
+            mSearchFragment = new SearchFragment();
+            mSearchFragmentId = mSearchFragment.getId();
+        }
 
         // Initialize recipe list
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(
                 this, android.R.layout.simple_list_item_1, RecipeHelper.getInstance().getRecipeTitles());
         mRecipeListFragment.setListAdapter(arrayAdapter);
 
+
         // Display the default fragment
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.add(R.id.fragmentContainer, mRecipeListFragment);
-        transaction.commit();
 
-        // Initialize listeners
-        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
-        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+        if (mActiveFragmentId > -1 && mActiveFragmentId == mSearchFragment.getId()) {
+            transaction.replace(R.id.fragmentContainer, mSearchFragment);
+            mActiveFragmentId = mSearchFragment.getId();
+        } else {
+            transaction.replace(R.id.fragmentContainer, mRecipeListFragment);
+            mActiveFragmentId = mRecipeListFragment.getId();
+        }
+        transaction.commit();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(KEY_ACTIVE_FRAGMENT, mActiveFragmentId);
+        outState.putInt(KEY_RECIPE_LIST_FRAGMENT_ID, mRecipeListFragment.getId());
+        outState.putInt(KEY_SEARCH_FRAGMENT_ID, mSearchFragment.getId());
     }
 
     /**
@@ -64,6 +101,12 @@ public class MainActivity extends AppCompatActivity {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.fragmentContainer, fragment);
         transaction.commit();
+
+        mActiveFragmentId = fragment.getId();
         return true;
     }
+
+    private final String KEY_ACTIVE_FRAGMENT = "KEY_ACTIVE_FRAGMENT";
+    private final String KEY_RECIPE_LIST_FRAGMENT_ID = "KEY_RECIPE_LIST_FRAGMENT_ID";
+    private final String KEY_SEARCH_FRAGMENT_ID = "KEY_SEARCH_FRAGMENT_ID";
 }

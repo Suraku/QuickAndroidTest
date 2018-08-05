@@ -22,14 +22,31 @@ import java.util.List;
 public class SearchFragment extends Fragment {
 
     private BaseAdapter mRecipeListAdapter;
-    private List<String> mListItems;
+    private ArrayList<String> mListItems;
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putStringArrayList(KEY_LIST, mListItems);
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            mListItems = savedInstanceState.getStringArrayList(KEY_LIST);
+        }
+    }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.fragment_search, container, false);
 
-        mListItems = new ArrayList<>();
+        if (mListItems == null) {
+            mListItems = new ArrayList<>();
+        }
 
         RecipeListFragment recipeListFragment = (RecipeListFragment) getChildFragmentManager().findFragmentById(R.id.searchList);
         if (recipeListFragment == null ) {
@@ -65,4 +82,5 @@ public class SearchFragment extends Fragment {
     }
 
     private String TAG = "SEARCH_FRAGMENT";
+    private String KEY_LIST = "KEY_LIST";
 }
