@@ -22,12 +22,34 @@ import java.util.List;
 public class SearchFragment extends Fragment {
 
     private BaseAdapter mRecipeListAdapter;
+    private View mRootView;
     private ArrayList<String> mListItems;
+    private String mSearchText;
+
+    /**
+     * Allow the activity to populate the list as we can lose the bundle state when this isn't
+     * the currently active content fragment upon screen rotate.
+     * @param val
+     */
+    public void setListItems(ArrayList<String> val) {
+        mListItems = val;
+    }
+
+    public void setSearchText(String val) {
+        mSearchText = val;
+    }
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putStringArrayList(KEY_LIST, mListItems);
+
+        // Prefer the most up-to-date text, otherwise fallback on last previously known.
+        if (mRootView != null) {
+            outState.putString(KEY_SEARCH_TEXT, getSearchText());
+        } else {
+            outState.putString(KEY_SEARCH_TEXT, mSearchText);
+        }
     }
 
     @Override
@@ -36,13 +58,15 @@ public class SearchFragment extends Fragment {
 
         if (savedInstanceState != null) {
             mListItems = savedInstanceState.getStringArrayList(KEY_LIST);
+            mSearchText = savedInstanceState.getString(KEY_SEARCH_TEXT);
         }
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        final View rootView = inflater.inflate(R.layout.fragment_search, container, false);
+
+        mRootView = inflater.inflate(R.layout.fragment_search, container, false);
 
         if (mListItems == null) {
             mListItems = new ArrayList<>();
@@ -57,15 +81,16 @@ public class SearchFragment extends Fragment {
         mRecipeListAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, mListItems);
         recipeListFragment.setListAdapter(mRecipeListAdapter);
 
-        Button button = (Button) rootView.findViewById(R.id.searchButton);
+        // Prepare on-click search button listener
+        final Button button = (Button) mRootView.findViewById(R.id.searchButton);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mListItems.clear();
 
-                EditText searchEditText = (EditText) rootView.findViewById(R.id.searchText);
-                String searchText = searchEditText.getText().toString().toLowerCase();
+                String searchText = getSearchText().toLowerCase();
 
+                // Filter recipes by the search term entered by the user.
                 List<Recipe> recipes = RecipeHelper.getInstance().getRecipes();
                 for (Recipe recipe : recipes) {
                     if (recipe.getTitle().toLowerCase().contains(searchText)
@@ -78,9 +103,19 @@ public class SearchFragment extends Fragment {
             }
         });
 
-        return rootView;
+        // Set any previously entered search text so the results would make sense.
+        EditText searchEditText = (EditText) mRootView.findViewById(R.id.searchText);
+        searchEditText.setText(mSearchText);
+
+        return mRootView;
+    }
+
+    private String getSearchText() {
+        EditText searchEditText = (EditText) mRootView.findViewById(R.id.searchText);
+        return searchEditText.getText().toString();
     }
 
     private String TAG = "SEARCH_FRAGMENT";
-    private String KEY_LIST = "KEY_LIST";
+    public static String KEY_LIST = "KEY_LIST";
+    public static String KEY_SEARCH_TEXT = "KEY_SEARCH_TEXT";
 }

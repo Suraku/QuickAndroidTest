@@ -1,9 +1,9 @@
 <resources>
-    <string name="app_name">QuickAndroidTest</string>
+    <string name="app_name">Quick Android Test</string>
     <string name="title_home">Home</string>
     <string name="title_dashboard">Search</string>
     <string name="title_notifications">Notifications</string>
     <string name="list_empty">No data</string>
     <string name="searchButton">Go</string>
-    <string name="searchHint">Search text...</string>
+    <string name="searchHint">Search text&#8230;</string>
 </resources>

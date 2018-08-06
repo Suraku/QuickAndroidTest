@@ -12,11 +12,13 @@ import android.widget.ArrayAdapter;
 
 import com.suraku.quickandroidtest.helpers.RecipeHelper;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity {
 
     private int mRecipeFragmentId;
     private int mSearchFragmentId;
-    private int mActiveFragmentId;
+    private int mActiveFragmentId = -1;
 
     private RecipeListFragment mRecipeListFragment;
     private SearchFragment mSearchFragment;
@@ -41,10 +43,16 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Retrieve persistent data for this activity and any fragments it has.
+        ArrayList<String> searchListItems = null;
+        String searchText = "";
+
         if (savedInstanceState != null) {
             mRecipeFragmentId = savedInstanceState.getInt(KEY_RECIPE_LIST_FRAGMENT_ID, -1);
             mSearchFragmentId = savedInstanceState.getInt(KEY_SEARCH_FRAGMENT_ID, -1);
             mActiveFragmentId = savedInstanceState.getInt(KEY_ACTIVE_FRAGMENT, -1);
+            searchListItems = savedInstanceState.getStringArrayList(SearchFragment.KEY_LIST);
+            searchText = savedInstanceState.getString(SearchFragment.KEY_SEARCH_TEXT);
         }
 
         // Initialize listeners
@@ -62,6 +70,8 @@ public class MainActivity extends AppCompatActivity {
         }
         if (mSearchFragment == null) {
             mSearchFragment = new SearchFragment();
+            mSearchFragment.setListItems(searchListItems);
+            mSearchFragment.setSearchText(searchText);
             mSearchFragmentId = mSearchFragment.getId();
         }
 
@@ -71,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         mRecipeListFragment.setListAdapter(arrayAdapter);
 
 
-        // Display the default fragment
+        // Display the previous/default fragment
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
         if (mActiveFragmentId > -1 && mActiveFragmentId == mSearchFragment.getId()) {
@@ -90,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
         outState.putInt(KEY_ACTIVE_FRAGMENT, mActiveFragmentId);
         outState.putInt(KEY_RECIPE_LIST_FRAGMENT_ID, mRecipeListFragment.getId());
         outState.putInt(KEY_SEARCH_FRAGMENT_ID, mSearchFragment.getId());
+        mSearchFragment.onSaveInstanceState(outState);
     }
 
     /**
